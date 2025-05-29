@@ -3,107 +3,139 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>분리배출 가이드</title>
+  <title>플라스틱 분리배출 통합 가이드</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-light: #fefefe;
-      --bg-gradient: linear-gradient(to bottom, #d8f3dc, #fefae0);
+      --bg: linear-gradient(to bottom, #e6f4f1, #ffffff);
       --accent: #52b788;
       --hover: #40916c;
-      --text-dark: #343a40;
     }
-    * { box-sizing: border-box; }
+
     body {
-      margin: 0;
       font-family: 'Nunito', sans-serif;
-      background: var(--bg-gradient);
+      background: var(--bg);
+      margin: 0;
+      padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 40px 0;
     }
-    .wrapper {
-      background: var(--bg-light);
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      max-width: 500px;
-      width: 90%;
+
+    .container {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
       animation: fadeIn 1s ease-in-out;
     }
+
     @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    h1 { font-size: 2em; margin-bottom: 20px; color: var(--accent); }
-    input, select {
-      width: 70%;
-      padding: 12px;
+
+    h1 {
+      text-align: center;
+      color: var(--accent);
+      font-size: 2em;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    input, select, button {
       font-size: 1em;
+      padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
-      transition: all 0.3s ease;
+      margin: 5px;
     }
+
     button {
-      padding: 12px 20px;
-      font-size: 1em;
-      border: none;
-      border-radius: 8px;
-      background-color: var(--accent);
+      background: var(--accent);
       color: white;
+      border: none;
       cursor: pointer;
-      transition: all 0.3s ease;
     }
-    button:hover { background-color: var(--hover); transform: scale(1.03); }
-    #result { margin-top: 20px; font-size: 1.1em; color: var(--text-dark); }
-    #imageContainer img {
+
+    button:hover {
+      background: var(--hover);
+    }
+
+    #result, #imageContainer {
       margin-top: 20px;
-      max-width: 100%;
-      border-radius: 10px;
+      text-align: center;
     }
-    ul { text-align: left; margin-top: 10px; }
+
+    ul {
+      padding-left: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <h1>♻️ <span id="title">분리배출 가이드</span></h1>
+  <div class="container">
+    <h1>♻️ 플라스틱 분류 & 분리배출 통합 가이드</h1>
+
+    <img src="cfabb213-071f-4a55-999e-3b8a404611f0.png" alt="플라스틱 분류표" />
+
+    <p>국제 및 국내 분류 마크를 통해 플라스틱 재질을 식별하고, 아래 검색창에서 분리배출 방법도 확인해보세요.</p>
+
     <select id="langSwitcher" onchange="switchLanguage()">
       <option value="ko">한국어</option>
       <option value="en">English</option>
     </select>
-    <input id="materialInput" list="materialList" type="text" placeholder="예: PP, PET, 종이팩 등">
+    <input id="materialInput" list="materialList" type="text" placeholder="예: PET, HDPE, 종이팩 등" />
     <datalist id="materialList"></datalist>
     <button onclick="showGuide()">검색</button>
+
     <div id="result"></div>
     <div id="imageContainer"></div>
-    <hr style="margin: 30px 0;">
+
+    <hr>
     <h2 id="historyTitle">📌 최근 검색한 품목</h2>
     <ul id="searchHistory"></ul>
+
     <h2 id="allTitle">🗃️ 전체 품목 목록</h2>
     <ul id="fullList"></ul>
   </div>
+
   <script>
     const guides = {
-      "pp": {
-        ko: { text: "PP는 내용물을 비우고 라벨을 제거한 후, 세척하고 부피를 줄여 배출하세요.", image: "https://i.imgur.com/o4y8VUM.png" },
-        en: { text: "For PP, empty the contents, remove the label, wash and compress before recycling.", image: "https://i.imgur.com/o4y8VUM.png" }
-      },
       "pet": {
         ko: { text: "PET는 뚜껑과 라벨을 제거하고 압착하여 배출하세요.", image: "https://i.imgur.com/UeFk4KU.png" },
         en: { text: "Remove the cap and label from PET bottles and crush before recycling.", image: "https://i.imgur.com/UeFk4KU.png" }
       },
+      "hdpe": {
+        ko: { text: "HDPE는 투명하거나 불투명한 플라스틱 용기로, 내용물을 비우고 배출하세요.", image: "https://i.imgur.com/NVzrH7O.png" },
+        en: { text: "HDPE is commonly used for containers; empty and clean before recycling.", image: "https://i.imgur.com/NVzrH7O.png" }
+      },
+      "pvc": {
+        ko: { text: "PVC는 재활용이 어렵습니다. 반드시 일반쓰레기로 배출하세요.", image: "https://i.imgur.com/Nw9tghl.png" },
+        en: { text: "PVC is difficult to recycle and should go in general waste.", image: "https://i.imgur.com/Nw9tghl.png" }
+      },
+      "ldpe": {
+        ko: { text: "LDPE는 주로 비닐봉지류로 깨끗이 세척 후 배출하세요.", image: "https://i.imgur.com/YMHbTY2.png" },
+        en: { text: "LDPE includes plastic wraps; rinse and dry before recycling.", image: "https://i.imgur.com/YMHbTY2.png" }
+      },
+      "pp": {
+        ko: { text: "PP는 라벨 제거 후 깨끗이 헹궈 압착하여 배출하세요.", image: "https://i.imgur.com/o4y8VUM.png" },
+        en: { text: "Remove labels from PP plastics, rinse and crush before disposal.", image: "https://i.imgur.com/o4y8VUM.png" }
+      },
+      "ps": {
+        ko: { text: "PS는 스티로폼이나 컵라면 용기에 사용되며, 깨끗한 것만 배출하세요.", image: "https://i.imgur.com/XqE1c3I.png" },
+        en: { text: "PS is styrofoam or noodle cups; only clean pieces are recyclable.", image: "https://i.imgur.com/XqE1c3I.png" }
+      },
       "종이팩": {
-        ko: { text: "종이팩은 깨끗이 헹군 후 따로 배출하세요.", image: "https://i.imgur.com/MGmS7Gy.png" },
-        en: { text: "Rinse paper packs clean and dispose of them separately.", image: "https://i.imgur.com/MGmS7Gy.png" }
+        ko: { text: "종이팩은 깨끗이 헹군 후 압착하여 배출하세요.", image: "https://i.imgur.com/MGmS7Gy.png" },
+        en: { text: "Rinse milk or juice packs clean and flatten them before recycling.", image: "https://i.imgur.com/MGmS7Gy.png" }
       }
     };
 
@@ -112,13 +144,12 @@
 
     function showGuide() {
       const input = document.getElementById('materialInput').value.trim().toLowerCase();
+      const data = guides[input];
       const resultDiv = document.getElementById('result');
       const imageDiv = document.getElementById('imageContainer');
-      const data = guides[input];
-
       if (data) {
         resultDiv.textContent = data[language].text;
-        imageDiv.innerHTML = `<img src="${data[language].image}" alt="${input} 이미지">`;
+        imageDiv.innerHTML = `<img src="\${data[language].image}" alt="\${input} 이미지">`;
         if (!history.includes(input)) {
           history.unshift(input);
           updateHistory();
@@ -130,33 +161,32 @@
     }
 
     function updateHistory() {
-      const historyList = document.getElementById('searchHistory');
-      historyList.innerHTML = '';
+      const list = document.getElementById('searchHistory');
+      list.innerHTML = "";
       history.forEach(item => {
         const li = document.createElement('li');
         li.textContent = item;
-        historyList.appendChild(li);
+        list.appendChild(li);
       });
     }
 
     function switchLanguage() {
       language = document.getElementById('langSwitcher').value;
-      document.getElementById('title').textContent = language === 'ko' ? '분리배출 가이드' : 'Recycling Guide';
       document.getElementById('historyTitle').textContent = language === 'ko' ? '📌 최근 검색한 품목' : '📌 Recent Searches';
       document.getElementById('allTitle').textContent = language === 'ko' ? '🗃️ 전체 품목 목록' : '🗃️ Full List';
       updateFullList();
     }
 
     function updateFullList() {
-      const fullList = document.getElementById('fullList');
-      fullList.innerHTML = '';
+      const list = document.getElementById('fullList');
       const datalist = document.getElementById('materialList');
-      datalist.innerHTML = '';
+      list.innerHTML = "";
+      datalist.innerHTML = "";
 
       Object.keys(guides).forEach(key => {
         const li = document.createElement('li');
         li.textContent = key;
-        fullList.appendChild(li);
+        list.appendChild(li);
 
         const option = document.createElement('option');
         option.value = key;
@@ -164,9 +194,7 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      updateFullList();
-    });
+    document.addEventListener("DOMContentLoaded", updateFullList);
   </script>
 </body>
 </html>
