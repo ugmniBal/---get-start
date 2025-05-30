@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>분리배출 재활용 가이드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f8f5; margin: 0; padding: 30px; }
+    .container {
+      background: white; max-width: 900px; margin: auto;
+      padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 { text-align: center; color: #2d6a4f; }
+    img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+    select, input, button {
+      font-size: 1em; margin: 10px 5px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;
+    }
+    button { background: #52b788; color: white; cursor: pointer; }
+    button:hover { background: #40916c; }
+    #result, #pathInfo, #imageContainer { margin-top: 20px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>♻️ 분리배출 재활용 가이드</h1>
+    <select id="langSwitcher" onchange="switchLanguage()">
+      <option value="ko">한국어</option>
+      <option value="en">English</option>
+    </select>
+    <input id="materialInput" list="materialList" placeholder="예: PET, 유리, 캔, 종이팩 등">
+    <datalist id="materialList"></datalist>
+    <button onclick="showGuide()">검색</button>
+    <div id="result"></div>
+    <div id="pathInfo"></div>
+    <div id="imageContainer"></div>
+    <h3 id="historyTitle">📌 최근 검색</h3>
+    <ul id="searchHistory"></ul>
+    <h3 id="allTitle">🗃️ 전체 품목</h3>
+    <ul id="fullList"></ul>
+  </div>
+  <script>
+    const guides = {
+  "pet": {
+    ko: { text: "PET는 뚜껑과 라벨을 제거하고 압착하여 배출하세요.", path: "플라스틱 → 선별장 → 압축 → 재생원료 → 섬유·의류", image: "https://i.imgur.com/UeFk4KU.png" },
+    en: { text: "Remove the cap and label from PET bottles and crush before recycling.", path: "Plastic → Sorting center → Compression → Recycled material → Fiber or clothing", image: "https://i.imgur.com/UeFk4KU.png" }
+  },
+  "hdpe": {
+    ko: { text: "HDPE는 내용물을 비우고 세척 후 배출하세요.", path: "플라스틱 → 세척 → 재생원료 → 플라스틱 용기", image: "https://i.imgur.com/NVzrH7O.png" },
+    en: { text: "Empty and wash HDPE containers before recycling.", path: "Plastic → Washing → Recycled material → Plastic containers", image: "https://i.imgur.com/NVzrH7O.png" }
+  },
+  "pvc": {
+    ko: { text: "PVC는 재활용이 어렵고 유해물질 포함 가능성이 있어 일반쓰레기로 배출하세요.", path: "일반쓰레기 → 소각 또는 매립", image: "https://i.imgur.com/Nw9tghl.png" },
+    en: { text: "PVC is hard to recycle and may contain toxic materials. Dispose of it as general waste.", path: "General waste → Incineration or landfill", image: "https://i.imgur.com/Nw9tghl.png" }
+  },
+  "ldpe": {
+    ko: { text: "LDPE는 주로 비닐류로 이물질 제거 후 깨끗한 것만 분리배출하세요.", path: "플라스틱 → 세척 → 재생원료 → 쓰레기봉투·필름", image: "https://i.imgur.com/YMHbTY2.png" },
+    en: { text: "LDPE includes wraps and bags. Clean them before recycling.", path: "Plastic → Washing → Recycled material → Trash bags, film", image: "https://i.imgur.com/YMHbTY2.png" }
+  },
+  "pp": {
+    ko: { text: "PP는 라벨 제거 후 깨끗이 헹구고 압착하여 배출하세요.", path: "플라스틱 → 선별 → 세척 → 재생원료 → 자동차 부품 등", image: "https://i.imgur.com/o4y8VUM.png" },
+    en: { text: "Remove label from PP, rinse, and compress before disposal.", path: "Plastic → Sorting → Washing → Recycled material → Auto parts etc.", image: "https://i.imgur.com/o4y8VUM.png" }
+  },
+  "ps": {
+    ko: { text: "PS는 스티로폼 등에 사용되며 깨끗한 경우만 분리배출 가능합니다.", path: "플라스틱 → 선별 → 재생원료 → 단열재·포장재", image: "https://i.imgur.com/XqE1c3I.png" },
+    en: { text: "PS includes foam and is recyclable only when clean.", path: "Plastic → Sorting → Recycled material → Insulation or packaging", image: "https://i.imgur.com/XqE1c3I.png" }
+  },
+  "other": {
+    ko: { text: "OTHER는 혼합재질로 재활용이 어렵고 일반쓰레기로 배출하세요.", path: "일반쓰레기 → 소각 또는 매립", image: "https://i.imgur.com/4JrCgVE.png" },
+    en: { text: "OTHER refers to mixed plastics. Dispose of it as general waste.", path: "General waste → Incineration or landfill", image: "https://i.imgur.com/4JrCgVE.png" }
+  },
+  "종이팩": {
+    ko: { text: "종이팩은 깨끗이 헹구고 압착하여 배출하세요.", path: "종이팩 → 별도 선별 → 재생펄프 → 화장지·제지", image: "https://i.imgur.com/MGmS7Gy.png" },
+    en: { text: "Rinse and flatten paper packs before recycling.", path: "Paper pack → Sorting → Recycled pulp → Tissue or paper", image: "https://i.imgur.com/MGmS7Gy.png" }
+  },
+  "일반쓰레기": {
+    ko: { text: "음식물, 오염된 비닐/용기류, 휴지 등은 일반쓰레기로 배출하세요.", path: "일반쓰레기 → 소각 또는 위생매립", image: "https://i.imgur.com/rIEpEVU.png" },
+    en: { text: "Food waste, dirty containers or plastic, and tissue go to general waste.", path: "General waste → Incineration or sanitary landfill", image: "https://i.imgur.com/rIEpEVU.png" }
+  },
+  "유리": {
+    ko: { text: "유리병은 내용물 제거 후 뚜껑을 분리하고 세척해 배출하세요.", path: "유리 → 선별 → 세척 → 재생유리 → 병 또는 건축자재", image: "https://i.imgur.com/8mXbI3B.png" },
+    en: { text: "Remove the contents and lids, then wash and recycle glass bottles.", path: "Glass → Sorting → Washing → Recycled glass → Bottles or building materials", image: "https://i.imgur.com/8mXbI3B.png" }
+  },
+  "캔": {
+    ko: { text: "캔은 내용물을 비우고 헹군 뒤 압착하여 배출하세요.", path: "금속 → 선별 → 용해 → 재생원료 → 캔, 자동차 부품", image: "https://i.imgur.com/Ukgu7fK.png" },
+    en: { text: "Empty and rinse cans, then compress before recycling.", path: "Metal → Sorting → Melting → Recycled material → Cans, auto parts", image: "https://i.imgur.com/Ukgu7fK.png" }
+  },
+};
+
+    let language = 'ko';
+    let history = [];
+
+    function showGuide() {
+      const input = document.getElementById('materialInput').value.trim().toLowerCase();
+      const item = guides[input];
+      const res = document.getElementById('result');
+      const path = document.getElementById('pathInfo');
+      const imgDiv = document.getElementById('imageContainer');
+
+      if (item) {
+        res.textContent = item[language].text;
+        path.textContent = "📦 " + item[language].path;
+        imgDiv.innerHTML = '<img src="' + item[language].image + '" alt="' + input + '">';
+        if (!history.includes(input)) {
+          history.unshift(input);
+          updateHistory();
+        }
+      } else {
+        res.textContent = language === 'ko' ? "해당 항목은 데이터에 없습니다." : "Item not found.";
+        path.textContent = "";
+        imgDiv.innerHTML = "";
+      }
+    }
+
+    function updateHistory() {
+      const hList = document.getElementById('searchHistory');
+      hList.innerHTML = '';
+      history.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        hList.appendChild(li);
+      });
+    }
+
+    function switchLanguage() {
+      language = document.getElementById('langSwitcher').value;
+      document.getElementById('historyTitle').textContent = language === 'ko' ? '📌 최근 검색' : '📌 Recent Searches';
+      document.getElementById('allTitle').textContent = language === 'ko' ? '🗃️ 전체 품목' : '🗃️ Full List';
+      updateFullList();
+    }
+
+    function updateFullList() {
+      const list = document.getElementById('fullList');
+      const datalist = document.getElementById('materialList');
+      list.innerHTML = '';
+      datalist.innerHTML = '';
+
+      Object.keys(guides).forEach(key => {
+        const li = document.createElement('li');
+        li.textContent = key;
+        list.appendChild(li);
+
+        const opt = document.createElement('option');
+        opt.value = key;
+        datalist.appendChild(opt);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", updateFullList);
+  </script>
+</body>
+</html>
